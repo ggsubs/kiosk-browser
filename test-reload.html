@@ -6,9 +6,17 @@
       $(function() {
         window.setInterval(function() { $("#timer-content").text(++i); }, 1000);
       });
+
+      function my_function(var1, var2)
+      {
+        $("#bridge-message").html("Hello from the bridge " + var1);
+      }
+
     </script>
   </head>
   <body>
     <h1 id='timer-content'>0</h1>
+    <p>
+    <h1><div id='bridge-message'></div></h1>
   </body>
 </html>

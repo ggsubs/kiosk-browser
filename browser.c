@@ -1,22 +1,30 @@
 #include <stdio.h>
 #include <signal.h>
-
+#include <syslog.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <webkit/webkit.h>
+#include <JavaScriptCore/JSStringRef.h>
+#include <JavaScriptCore/JSContextRef.h>
 
 gboolean on_key_press(GtkWidget*, GdkEventKey*, gpointer);
 
 void reload_browser(int);
 void toggle_fullscreen(int);
+void jsmessage(int);
 void maximize();
 void unmaximize();
 
 static WebKitWebView* web_view;
 static GtkWidget *window;
-gchar* default_url = "https://github.com/pschultz/kiosk-browser/blob/master/README.md";
+static WebKitWebFrame *webFrame;
+static JSObjectRef globalObject;
+static JSContextRef context;
+ 
+gchar* default_url = "file:///home/pi/kiosk/test-reload.html";
 
 int main(int argc, char** argv) {
+
   gtk_init(&argc, &argv);
 
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -26,8 +34,16 @@ int main(int argc, char** argv) {
 
   web_view = WEBKIT_WEB_VIEW(webkit_web_view_new());
 
+  webFrame = webkit_web_view_get_main_frame (web_view);
+  context = webkit_web_frame_get_global_context(webFrame);
+  globalObject = JSContextGetGlobalObject(context);
+
+  setlogmask (LOG_UPTO (LOG_NOTICE));
+  openlog ("kioskbrowser", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+
   signal(SIGHUP, reload_browser);
-  signal(SIGUSR1, toggle_fullscreen);
+  signal(SIGUSR1, jsmessage);
+  signal(SIGUSR2, jsmessage);
 
   gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(web_view));
 
@@ -68,6 +84,21 @@ void toggle_fullscreen(int signum) {
     unmaximize();
   }
 }
+
+void jsmessage(int signum) {
+  
+  JSValueRef  arguments[2];
+  JSValueRef result;
+  int num_arguments = 2;
+
+  JSStringRef myFunctionName = JSStringCreateWithUTF8CString("my_function");
+  JSObjectRef functionObject = (JSObjectRef)JSObjectGetProperty(context, globalObject, myFunctionName, NULL);
+  arguments[0] = JSValueMakeNumber(context, signum);
+  arguments[1] = JSValueMakeNumber(context, 3.14);
+  result = JSObjectCallAsFunction(context, functionObject, globalObject, num_arguments, arguments, NULL);
+  syslog (LOG_NOTICE, "After SIG %d", signum);
+}
+
 
 void maximize() {
   gtk_window_maximize(GTK_WINDOW(window));
