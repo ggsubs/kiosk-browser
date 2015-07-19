@@ -15,6 +15,8 @@ This program was designed to be started via inittab on boot like this:
 
 # USAGE
     browser <URL>
+or when working with ssh:
+    xinit ./browser <URL>
 
 This will launch the browser in fullscreen mode and load the resource at `URL`.
 `URL` can be anything that WebKit supports, including `file://`-URLs for local webpages and documents.
