@@ -21,7 +21,7 @@ static WebKitWebFrame *webFrame;
 static JSObjectRef globalObject;
 static JSContextRef context;
  
-gchar* default_url = "file:///home/pi/kiosk/test-reload.html";
+gchar* default_url = "file:///home/pi/kiosk-browser/test-reload.html";
 
 int main(int argc, char** argv) {
 
