@@ -15,6 +15,7 @@ This program was designed to be started via inittab on boot like this:
 
 # USAGE
     browser <URL>
+    
 or when working with ssh:
     xinit ./browser <URL>
 
